@@ -19,22 +19,17 @@ from google.adk.runners import Runner
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.genai import types
 
-# MCP Toolset imports
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
 
-# Import the agent definition factory and MCP server URL from your jarvis module
 from jarvis.agent import get_jarvis_agent_definition, GMAIL_MCP_SERVER_URL
 
 
-# Load Gemini API Key and other environment variables (e.g., for Vertex AI)
 load_dotenv()
-
 APP_NAME = "ADK Streaming example"
 session_service = InMemorySessionService()
 
-# Globals to hold MCP tools and the exit stack for cleanup
-fetched_mcp_tools: List = [] # Using Python's List for type hint
-mcp_toolset_exit_stack = None # This will be an contextlib.AsyncExitStack
+fetched_mcp_tools: List = [] 
+mcp_toolset_exit_stack = None 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,11 +53,10 @@ async def lifespan(app: FastAPI):
         else:
             # This case could happen if connection fails or server has no tools
             print("MCPToolset.from_server returned an empty list of tools or failed to fetch.")
-        yield # Application runs after this point
+        yield 
     except Exception as e:
         print(f"Error during MCPToolset initialization in lifespan: {e}")
-        # Depending on how critical MCP tools are, you might want to re-raise the exception
-        # to prevent the app from starting in a broken state.
+        
         raise
     finally:
         print("FastAPI app shutting down...")
@@ -78,7 +72,7 @@ STATIC_DIR = Path("static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/")
-async def root_html_endpoint(): # Renamed from 'root' to be more descriptive
+async def root_html_endpoint(): 
     """Serves the index.html"""
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
@@ -125,9 +119,6 @@ def start_agent_session(session_id: str, is_audio: bool = False):
     )
     return live_events, live_request_queue
 
-# The rest of main.py (agent_to_client_messaging, client_to_agent_messaging, websocket_endpoint)
-# remains the same as your provided version, as they correctly handle async operations
-# for WebSocket communication and ADK event iteration.
 
 async def agent_to_client_messaging(
     websocket: WebSocket, live_events: AsyncIterable[Event | None]

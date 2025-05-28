@@ -1,29 +1,25 @@
-# HOLBOXATHON/ADK/adk-voice-agent/app/jarvis/tools/a2a_clap_client_tool.py
 import httpx
-# We are NOT using a2a.client.A2AClient or a2a.types for this direct FastAPI style
 import json
 import os
-# import uuid # Not strictly needed by client if server doesn't expect messageId in request body
 
 CLAP_A2A_SERVER_BASE_URL = os.getenv("CLAP_A2A_SERVER_URL", "http://localhost:9999")
 
 async def call_clap_agent_via_a2a(user_query: str) -> str:
     print(f"\n[ADK A2A TOOL LOG (FastAPI Style)] Calling CLAP A2A agent.")
-    print(f"[ADK A2A TOOL LOG (FastAPI Style)] Target URL: {CLAP_A2A_SERVER_BASE_URL}/") # POST to root
+    print(f"[ADK A2A TOOL LOG (FastAPI Style)] Target URL: {CLAP_A2A_SERVER_BASE_URL}/") 
     print(f"[ADK A2A TOOL LOG (FastAPI Style)] User Query: '{user_query}'")
 
-    # Request payload matches A2AAgentRequest model in the server
     payload = {
         "message": user_query,
-        "context": {}, # Add context if needed
-        # "session_id": "some_session_id_if_tracking" # Optional
+        "context": {}, 
+        
     }
 
-    async with httpx.AsyncClient(timeout=120.0) as http_client: # Increased timeout
+    async with httpx.AsyncClient(timeout=120.0) as http_client: 
         try:
             print(f"[ADK A2A TOOL LOG (FastAPI Style)] Sending POST to {CLAP_A2A_SERVER_BASE_URL}/")
             response = await http_client.post(
-                f"{CLAP_A2A_SERVER_BASE_URL}/", # POST to the root endpoint
+                f"{CLAP_A2A_SERVER_BASE_URL}/", 
                 json=payload,
                 headers={"Content-Type": "application/json", "Accept": "application/json"}
             )

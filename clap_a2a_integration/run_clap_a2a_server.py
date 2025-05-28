@@ -1,4 +1,3 @@
-# HOLBOXATHON/clap_a2a_integration/run_clap_a2a_server_fastapi_style.py
 import asyncio
 import uvicorn
 import os
@@ -17,12 +16,12 @@ from clap_agent_executor import ClapAgentA2AExecutorFastAPIStyle
 A2A_SERVER_HOST = "localhost"
 A2A_SERVER_PORT = 9999
 
-class A2AAgentRequest(BaseModel): # Keep these Pydantic models for FastAPI
+class A2AAgentRequest(BaseModel): 
     message: str = Field(..., description="The message/query for the agent")
     context: Dict[str, Any] = Field(default_factory=dict)
     session_id: Optional[str] = Field(None)
 
-class A2AAgentResponse(BaseModel): # Keep these
+class A2AAgentResponse(BaseModel): 
     message: str = Field(..., description="The agent's response")
     status: str = Field(default="success")
     data: Dict[str, Any] = Field(default_factory=dict)
@@ -35,11 +34,11 @@ async def lifespan(app: FastAPI):
     global clap_executor_instance
     print("CLAP A2A FastAPI Server (RAG): Lifespan startup...")
     dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-    load_dotenv(dotenv_path=dotenv_path) # For GOOGLE_API_KEY etc. for the RAG agent
+    load_dotenv(dotenv_path=dotenv_path) 
     print(f"CLAP A2A FastAPI Server (RAG): .env loaded from {dotenv_path}")
 
     clap_executor_instance = ClapAgentA2AExecutorFastAPIStyle()
-    await clap_executor_instance.setup_rag_agent() # <--- CALL ASYNC SETUP
+    await clap_executor_instance.setup_rag_agent() 
     print("CLAP A2A FastAPI Server (RAG): ClapAgentA2AExecutorFastAPIStyle initialized and RAG setup.")
     yield
     print("CLAP A2A FastAPI Server (RAG): Lifespan shutdown...")

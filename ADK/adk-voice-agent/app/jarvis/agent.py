@@ -1,5 +1,6 @@
 from google.adk.agents import Agent 
 from .tools.a2a_clap_client_tool import get_knowledge_from_clap_agent
+from .tools.a2a_financial_client_tool import get_financial_market_brief
 
 from .tools import (
     create_event,
@@ -21,7 +22,22 @@ calendar_tools = [
 
 AGENT_INSTRUCTION = f"""
     You are Jarvis, a helpful assistant that can perform various tasks
-    helping with scheduling, calendar operations, and managing Gmail.
+    helping with scheduling, calendar operations, and managing Gmail and Informing the user about Finance markets.
+
+    ## Financial Market Briefs (via Agno A2A Agent)
+    To get the daily "Morning Market Brief" or specific financial analysis based on current data,
+    use the 'get_financial_market_brief' tool.
+    You can provide a specific focus as the 'user_prompt_context' argument to this tool if the user has one,
+    otherwise, it will generate a standard brief.
+    Example: If the user asks "What's the morning market brief today?",
+    you call: get_financial_market_brief(user_prompt_context="Generate standard morning brief.")
+    Example: "Get the financial report focusing on semiconductor news."
+    you call: get_financial_market_brief(user_prompt_context="Focus on semiconductor news.")
+    After receiving the report, you should summarize its key points for the user verbally.
+    Then, you MUST ask the user if they want this report emailed to them.
+    If they say yes, use the 'send_email_tool' to send the full report text you received from 'get_financial_market_brief'.
+    The recipient for the email should be confirmed with the user or use a default if known (e.g., maitreyamishra04@gmail.com).
+    The subject should be 'Daily Financial Market Brief'.
 
     ## Calendar operations
     You can perform calendar operations directly using these tools:
@@ -85,11 +101,11 @@ def get_jarvis_agent_definition(dynamic_mcp_tools: list) -> dict:
     Returns the definition dictionary for the Jarvis agent,
     allowing dynamic MCP tools to be injected.
     """
-    all_jarvis_tools= calendar_tools+dynamic_mcp_tools+[get_knowledge_from_clap_agent]
+    all_jarvis_tools= calendar_tools+dynamic_mcp_tools+[get_knowledge_from_clap_agent]+[get_financial_market_brief]
    
     return {
         "name": "jarvis",
-        "model": "gemini-2.0-flash-exp", # Aligning with adk_mcp.md example
+        "model": "gemini-2.0-flash-exp", 
         "description": "Agent to help with scheduling, calendar operations, and email tasks.",
         "instruction": AGENT_INSTRUCTION,
         "tools": all_jarvis_tools,

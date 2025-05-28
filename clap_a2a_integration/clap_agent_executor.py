@@ -1,24 +1,22 @@
-# HOLBOXATHON/clap_a2a_integration/clap_agent_a2a_executor_fastapi_style.py
 import asyncio
 import os
 import shutil
-import time # For timing ingestion
+import time 
 from dotenv import load_dotenv
 
-# CLAP Imports for RAG
-from clap import Agent # Using the ReAct-based Agent for RAG
+# RAG
+from clap import Agent 
 from clap.vector_stores.chroma_store import ChromaStore
 from clap.utils.rag_utils import (
     load_pdf_file,
     chunk_text_by_fixed_size
 )
-# Choose your LLM Service for the CLAP RAG Agent
-from clap.llm_services.google_openai_compat_service import GoogleOpenAICompatService # Example
-# from clap.llm_services.groq_service import GroqService
-# from clap.llm_services.ollama_service import OllamaService
+
+from clap.llm_services.google_openai_compat_service import GoogleOpenAICompatService 
+from clap.llm_services.groq_service import GroqService
+#from clap.llm_services.ollama_service import OllamaService
 
 
-# Embedding function for ChromaDB
 try:
     from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
     DEFAULT_EF = SentenceTransformerEmbeddingFunction() 
@@ -29,19 +27,18 @@ except ImportError:
     DEFAULT_EF = DefaultEmbeddingFunction()
 
 class ClapAgentA2AExecutorFastAPIStyle:
-    _rag_agent: Agent # This will be your CLAP RAG Agent
-    _llm_service_for_rag: GoogleOpenAICompatService # Type hint for the LLM service
+    _rag_agent: Agent 
+    _llm_service_for_rag: GoogleOpenAICompatService 
     _vector_store: ChromaStore
     _initialized: bool = False
 
-    # --- RAG Configuration (moved from huge_rag.py) ---
-    PDF_FILENAME = "holbox.pdf" # Make sure this PDF is in clap_a2a_integration/
+    PDF_FILENAME = "holbox.pdf" 
     PDF_PATH = os.path.join(os.path.dirname(__file__), PDF_FILENAME)
     CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "./interactive_rag_chroma_db")
     COLLECTION_NAME = "ml_book_interactive_rag_a2a" # Unique name for this A2A server's DB
     CHUNK_SIZE = 500
     CHUNK_OVERLAP = 50
-    RAG_LLM_MODEL = "gemini-1.5-flash-latest" # Model for the RAG agent
+    RAG_LLM_MODEL = "gemini-2.5-flash-preview-04-17" # Model for the RAG agent
 
     def __init__(self):
         # Basic init. Actual RAG setup will be in an async method.
@@ -119,21 +116,19 @@ class ClapAgentA2AExecutorFastAPIStyle:
             ingestion_time = time.time() - ingestion_start_time
             print(f"  Ingestion complete. Took {ingestion_time:.2f} seconds.")
 
-        # Initialize LLM Service for the RAG Agent
         print(f"  Initializing LLM Service for RAG: {GoogleOpenAICompatService.__name__} with model {self.RAG_LLM_MODEL}")
         try:
-            self._llm_service_for_rag = GoogleOpenAICompatService() # Ensure GOOGLE_API_KEY is in .env
+            self._llm_service_for_rag = GoogleOpenAICompatService() 
         except Exception as e:
             print(f"  ERROR: Failed to initialize LLM Service for RAG: {e}")
             self._initialized = False
             return
 
-        # Initialize CLAP RAG Agent
-        self._rag_agent = Agent( # This is the ReAct-based Agent from CLAP
+        self._rag_agent = Agent( 
             name="A2A_RAG_Expert_CLAP_Agent",
             backstory="I am an expert assistant with access to detailed information about Holbox AI from a provided document. I will answer your questions based on this document.",
-            task_description="Answer user queries based on the ML book.", # Generic
-            task_expected_output="A concise and accurate answer derived solely from the retrieved document context about Holbox AI.",
+            task_description="Answer user queries based on the document.", # Generic
+            task_expected_output="A concise and accurate answer derived solely from the retrieved document.",
             llm_service=self._llm_service_for_rag,
             model=self.RAG_LLM_MODEL,
             vector_store=self._vector_store
@@ -150,10 +145,9 @@ class ClapAgentA2AExecutorFastAPIStyle:
 
         print(f"ClapAgentA2AExecutorFastAPIStyle: Received RAG query: '{user_input}'")
         try:
-            # Set the current query as the agent's task description for this run
             self._rag_agent.task_description = user_input
             
-            clap_response_dict = await self._rag_agent.run() # CLAP Agent's run method
+            clap_response_dict = await self._rag_agent.run() 
             clap_response_str = clap_response_dict.get("output", "RAG agent did not produce an 'output' string.")
             
             print(f"ClapAgentA2AExecutorFastAPIStyle: CLAP RAG agent responded: '{clap_response_str[:200]}...'")
@@ -180,7 +174,7 @@ class ClapAgentA2AExecutorFastAPIStyle:
             hasattr(self._vector_store, 'close') and \
             asyncio.iscoroutinefunction(self._vector_store.close):
             try:
-                await self._vector_store.close() # If your ChromaStore has an async close
+                await self._vector_store.close() 
                 print("ClapAgentA2AExecutorFastAPIStyle: Vector store closed.")
             except Exception as e:
                 print(f"ClapAgentA2AExecutorFastAPIStyle: Error closing vector store: {e}")
