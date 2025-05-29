@@ -1,4 +1,3 @@
-# HOLBOXATHON/agno_financial_agent/financial_agent_executor_fastapi.py
 import asyncio
 import os
 from typing import Dict, Any, Optional
@@ -6,16 +5,15 @@ import requests
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Agno Imports
 from agno.agent import Agent as AgnoAgent, Message as AgnoMessage, RunResponse as AgnoRunResponse
-from agno.models.groq import Groq # Assuming this is correct for your Agno
+from agno.models.groq import Groq 
 from agno.tools.yfinance import YFinanceTools
 
 def fetch_coingecko_btc_price_sync() -> Optional[Dict[str, Any]]:
     url = "https://api.coingecko.com/api/v3/simple/price"
     params = {'ids': 'bitcoin', 'vs_currencies': 'usd,inr'}
     try:
-        response = requests.get(url, params=params, timeout=15) # Increased timeout slightly
+        response = requests.get(url, params=params, timeout=15) 
         response.raise_for_status()
         data = response.json().get('bitcoin', {})
         print(f"[FinancialReportAgent - CoinGecko] Fetched: {data}")
@@ -24,8 +22,8 @@ def fetch_coingecko_btc_price_sync() -> Optional[Dict[str, Any]]:
         print(f"[FinancialReportAgent - CoinGecko] Error fetching BTC price: {e}")
         return None
 
-class FinancialReportAgentLogic: # Renamed to avoid confusion with AgnoAgent
-    _agno_agent_instance: AgnoAgent # Changed from _agno_agent to avoid Pylint issue
+class FinancialReportAgentLogic: 
+    _agno_agent_instance: AgnoAgent 
 
     def __init__(self):
         dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -45,10 +43,10 @@ class FinancialReportAgentLogic: # Renamed to avoid confusion with AgnoAgent
         )
         print("FinancialReportAgentLogic: YFinanceTools initialized.")
 
-        self._agno_agent_instance = AgnoAgent( # Changed attribute name
+        self._agno_agent_instance = AgnoAgent( 
             model=agno_llm,
             tools=[yfinance_tools],
-            markdown=True, # Agno agent might produce markdown
+            markdown=True, 
             instructions=[
                 "You are a financial analyst. Your goal is to create a concise 'Morning Market Brief'.",
                 "First, you will be provided with the current Bitcoin price from an external source (CoinGecko).",
@@ -62,7 +60,6 @@ class FinancialReportAgentLogic: # Renamed to avoid confusion with AgnoAgent
         print("FinancialReportAgentLogic: Agno Agent initialized.")
 
     async def generate_report(self, user_query_context: Optional[str] = None) -> str:
-        # ... (This method remains the same as the previous working version)
         print("FinancialReportAgentLogic: Generating report...")
         btc_data = await asyncio.to_thread(fetch_coingecko_btc_price_sync)
         btc_report_line = "Bitcoin Price: Data unavailable from CoinGecko."
@@ -91,8 +88,8 @@ class FinancialReportAgentLogic: # Renamed to avoid confusion with AgnoAgent
             traceback.print_exc()
             return f"Error during Agno agent execution: {str(e)}"
 
-class AgnoFinancialA2AExecutorFastAPI: # Renamed class
-    _financial_report_logic: FinancialReportAgentLogic # Holds the Agno agent logic
+class AgnoFinancialA2AExecutorFastAPI: 
+    _financial_report_logic: FinancialReportAgentLogic 
 
     def __init__(self):
         print("AgnoFinancialA2AExecutorFastAPI: Initializing...")
@@ -116,7 +113,6 @@ class AgnoFinancialA2AExecutorFastAPI: # Renamed class
 
     async def close_resources(self):
         print("AgnoFinancialA2AExecutorFastAPI: Closing resources...")
-        # Close the LLM client if FinancialReportAgentLogic holds it and it has a close method
         if hasattr(self._financial_report_logic._agno_agent_instance.model, 'close') and \
            asyncio.iscoroutinefunction(self._financial_report_logic._agno_agent_instance.model.close):
             try:

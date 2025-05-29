@@ -24,9 +24,9 @@ async def call_clap_agent_via_a2a(user_query: str) -> str:
                 headers={"Content-Type": "application/json", "Accept": "application/json"}
             )
             print(f"[ADK A2A TOOL LOG (FastAPI Style)] Raw HTTP Status: {response.status_code}")
-            response.raise_for_status() # Raise HTTPError for 4xx/5xx responses
+            response.raise_for_status() 
 
-            response_data = response.json() # Expects direct JSON (A2AAgentResponse)
+            response_data = response.json() 
             print(f"[ADK A2A TOOL LOG (FastAPI Style)] Response JSON: {json.dumps(response_data, indent=2)}")
 
             if response_data.get("status") == "success" and "message" in response_data:
@@ -55,7 +55,6 @@ async def call_clap_agent_via_a2a(user_query: str) -> str:
             return error_msg
 
 async def get_knowledge_from_clap_agent(query_for_rag: str) -> str:
-    # Docstring remains the same
     """
     Delegates a complex query, suitable for Retrieval Augmented Generation (RAG)
     or specialized CLAP agent tools, to a remote CLAP agent accessible via A2A protocol.

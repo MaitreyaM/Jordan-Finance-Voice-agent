@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 # RAG
 from clap import Agent 
 from clap.vector_stores.chroma_store import ChromaStore
+from clap.tools import duckduckgo_search
 from clap.utils.rag_utils import (
     load_pdf_file,
     chunk_text_by_fixed_size
@@ -32,20 +33,16 @@ class ClapAgentA2AExecutorFastAPIStyle:
     _vector_store: ChromaStore
     _initialized: bool = False
 
-    PDF_FILENAME = "holbox.pdf" 
+    PDF_FILENAME = "financial_glossary.pdf" 
     PDF_PATH = os.path.join(os.path.dirname(__file__), PDF_FILENAME)
     CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "./interactive_rag_chroma_db")
-    COLLECTION_NAME = "ml_book_interactive_rag_a2a" # Unique name for this A2A server's DB
+    COLLECTION_NAME = "financial_glossary" # Unique name for this A2A server's DB
     CHUNK_SIZE = 500
     CHUNK_OVERLAP = 50
-    RAG_LLM_MODEL = "gemini-2.5-flash-preview-04-17" # Model for the RAG agent
-
+    RAG_LLM_MODEL = "gemini-2.5-flash-preview-04-17" 
     def __init__(self):
-        # Basic init. Actual RAG setup will be in an async method.
         print("ClapAgentA2AExecutorFastAPIStyle: Synchronous __init__ called.")
-        # .env loading for API keys is now handled by the server's lifespan method
-        # before this executor is fully set up.
-
+        
     async def setup_rag_agent(self):
         """
         Asynchronously initializes the RAG system (vector store, LLM, RAG agent).
@@ -68,8 +65,6 @@ class ClapAgentA2AExecutorFastAPIStyle:
                     collection_name=self.COLLECTION_NAME,
                     embedding_function=DEFAULT_EF
                 )
-                # A proper check would be collection.count() > 0 if API allows async count
-                # For now, non-empty directory implies data.
                 print(f"  Connected to existing ChromaDB collection '{self.COLLECTION_NAME}'. Skipping ingestion.")
                 db_exists_and_has_data = True
             except Exception as e:
@@ -124,14 +119,16 @@ class ClapAgentA2AExecutorFastAPIStyle:
             self._initialized = False
             return
 
+    
         self._rag_agent = Agent( 
-            name="A2A_RAG_Expert_CLAP_Agent",
-            backstory="I am an expert assistant with access to detailed information about Holbox AI from a provided document. I will answer your questions based on this document.",
-            task_description="Answer user queries based on the document.", # Generic
-            task_expected_output="A concise and accurate answer derived solely from the retrieved document.",
-            llm_service=self._llm_service_for_rag,
-            model=self.RAG_LLM_MODEL,
-            vector_store=self._vector_store
+        name="A2A_Financial_Explainer_Agent", 
+        backstory="I am an expert assistant. My primary knowledge comes from a financial glossary. If I cannot find an answer there, I can search the web. I will always prioritize and clearly state information from the glossary.",
+        task_description="Answer user queries regarding finance. First, try to use the financial glossary. If the information is not found or is insufficient, use the web search tool.",
+        task_expected_output="A concise and accurate answer. If using web search, clearly indicate that the information is from the web.",
+        llm_service=self._llm_service_for_rag,
+        model=self.RAG_LLM_MODEL,
+        vector_store=self._vector_store,
+        tools=[duckduckgo_search] 
         )
         print("  CLAP RAG Agent initialized.")
         self._initialized = True

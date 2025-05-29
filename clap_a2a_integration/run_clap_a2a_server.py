@@ -58,16 +58,16 @@ app.add_middleware(
 
 # --- Updated Agent Card ---
 AGENT_CARD_DATA = {
-    "name": "CLAP Holbox AI Info Agent (A2A FastAPI)",
-    "description": "A CLAP agent with RAG capabilities, providing information about Holbox AI based on a specific document.",
+    "name": "CLAP Finance Info Agent (A2A FastAPI)",
+    "description": "A CLAP agent with RAG capabilities, providing information about Finance based on a specific knowledge base.",
     "url": f"http://{A2A_SERVER_HOST}:{A2A_SERVER_PORT}/",
     "version": "0.2.0", # Updated version
     "defaultInputModes": ["text/plain"],
-    "defaultOutputModes": ["text/plain"], # RAG agent will return text
-    "capabilities": {"streaming": False}, # Simple message/send for now
+    "defaultOutputModes": ["text/plain"], 
+    "capabilities": {"streaming": False},
     "skills": [
         {
-            "id": "clap_query_holbox_ai_info", # More specific skill ID
+            "id": "clap_query_holbox_ai_info", 
             "name": "Query Holbox AI Information (CLAP RAG Agent)",
             "description": "Answers questions based on the content of a pre-loaded Machine Learning textbook.",
             "tags": ["clap", "rag", "machine-learning", "document-analysis"],
@@ -88,7 +88,7 @@ async def get_agent_card():
 @app.post("/", response_model=A2AAgentResponse)
 async def handle_a2a_message_send(request: A2AAgentRequest = Body(...)):
     global clap_executor_instance
-    if not clap_executor_instance or not clap_executor_instance._initialized: # Check _initialized flag
+    if not clap_executor_instance or not clap_executor_instance._initialized: 
         raise HTTPException(status_code=503, detail="RAG Agent executor not ready or failed initialization.")
     
     print(f"CLAP A2A FastAPI Server (RAG): Received query: '{request.message[:100]}...'")

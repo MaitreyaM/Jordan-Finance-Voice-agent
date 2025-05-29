@@ -1,29 +1,24 @@
-# HOLBOXATHON/ADK/adk-voice-agent/app/jarvis/tools/a2a_financial_client_tool.py
 import httpx
 import json
 import os
-# No A2AClient or A2A types needed for direct HTTP call
 
-# URL of your Agno Financial A2A Server (FastAPI style)
 AGNO_A2A_FINANCIAL_SERVER_BASE_URL = os.getenv("AGNO_A2A_FINANCIAL_SERVER_URL", "http://localhost:10000")
 
-async def _execute_agno_http_call(user_query_for_brief: str) -> str: # Renamed
+async def _execute_agno_http_call(user_query_for_brief: str) -> str:
     tool_log_prefix = "[ADK Tool - _execute_agno_http_call]"
-    target_url = f"{AGNO_A2A_FINANCIAL_SERVER_BASE_URL}/" # Assuming POST to root
+    target_url = f"{AGNO_A2A_FINANCIAL_SERVER_BASE_URL}/"
     
     print(f"\n{tool_log_prefix} Calling Agno Financial Server (direct FastAPI POST).")
     print(f"{tool_log_prefix} Target URL: {target_url}")
     print(f"{tool_log_prefix} User Query/Context: '{user_query_for_brief}'")
 
-    # This payload matches AgnoAgentApiRequest in run_financial_agent_server_fastapi.py
     payload = {
         "message": user_query_for_brief,
-        "context": {}, 
-        "session_id": None 
+        
     }
     print(f"{tool_log_prefix} Request Payload: {json.dumps(payload)}")
 
-    async with httpx.AsyncClient(timeout=180.0) as http_client:
+    async with httpx.AsyncClient(timeout=180.0) as http_client: 
         try:
             print(f"{tool_log_prefix} Sending POST to {target_url}...")
             response = await http_client.post(
@@ -33,32 +28,36 @@ async def _execute_agno_http_call(user_query_for_brief: str) -> str: # Renamed
             )
             print(f"{tool_log_prefix} Raw HTTP Status: {response.status_code}")
             
-            # Check for non-2xx status codes first
             if response.status_code != 200:
                 error_text = response.text
                 error_msg = f"Error: Agno server returned HTTP {response.status_code}. Response: {error_text[:200]}"
                 print(f"{tool_log_prefix} {error_msg}")
-                return error_msg # Return the server's error message if available
+                return error_msg
 
             response_data = response.json() 
             print(f"{tool_log_prefix} Response JSON: {json.dumps(response_data, indent=2, ensure_ascii=False)}")
 
-            # Process the simple JSON response (matches AgnoAgentApiResponse)
-            if response_data.get("status") == "success" and "message" in response_data:
-                final_text = response_data["message"]
-                print(f"{tool_log_prefix} Success. Returning report: '{final_text[:200]}...'")
-                return final_text
-            else:
-                error_msg_detail = response_data.get("message", "Unknown error structure from Agno server.")
-                print(f"{tool_log_prefix} Error in response data: {error_msg_detail}")
-                return f"Error from Agno Financial Agent: {error_msg_detail}"
+            response_status = response_data.get("status")
+            response_message = response_data.get("message", "No message content from Agno server.")
 
-        except httpx.HTTPStatusError as e: # Should be caught by status_code check now
+            if response_status == "success":
+                print(f"{tool_log_prefix} Success. Returning report: '{response_message[:200]}...'")
+                return response_message
+            elif response_status == "auth_required": 
+                print(f"{tool_log_prefix} AuthRequired. Returning message: '{response_message[:200]}...'")
+               
+                return response_message 
+            else: 
+                error_msg_detail = response_message
+                print(f"{tool_log_prefix} Error or unexpected status '{response_status}' in response data: {error_msg_detail}")
+                return f"Error from Agno Financial Agent (status: {response_status}): {error_msg_detail}"
+
+        except httpx.HTTPStatusError as e:
             error_text = e.response.text if e.response else "No response body"
             error_msg = f"Error: Agno server returned HTTP {e.response.status_code}. Response: {error_text[:200]}"
             print(f"{tool_log_prefix} {error_msg}")
             return error_msg
-        except httpx.RequestError as e: # Catches network errors, timeouts
+        except httpx.RequestError as e: 
             error_msg = f"Error: Could not connect to Agno service (HTTP RequestError). {type(e).__name__}: {e}"
             print(f"{tool_log_prefix} {error_msg}")
             return error_msg
@@ -75,13 +74,13 @@ async def _execute_agno_http_call(user_query_for_brief: str) -> str: # Renamed
 
 async def get_financial_market_brief(user_prompt_context: str = "Generate standard morning brief.") -> str:
     """
-    Retrieves the morning financial market brief by calling a specialized Agno agent
+    Retrieves the morning financial market brief or handles Zerodha actions by calling a specialized Agno agent
     via a direct HTTP POST request to its FastAPI endpoint.
 
     Args:
-        user_prompt_context: Optional. Specific focus for the brief.
+        user_prompt_context: Specific focus for the brief or Zerodha command.
     
     Returns:
-        A string containing the financial market brief, or an error message.
+        A string containing the financial market brief, Zerodha data, authentication URL, or an error message.
     """
     return await _execute_agno_http_call(user_query_for_brief=user_prompt_context)

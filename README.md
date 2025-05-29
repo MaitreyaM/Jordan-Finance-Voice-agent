@@ -1,142 +1,249 @@
-# Project Jarvis: Advanced Voice Assistant with Integrated CLAP Agent, MCP, and A2A
+# Jordon: Advanced Voice-Controlled Financial and Productivity Assistant
 
-<p align="center">
-  <img src="media/GITCLAP.png" alt="CLAP Framework Logo" width="700"/>
-</p>
+Jordon is a sophisticated, voice-controlled AI assistant built to demonstrate the integration of multiple cutting-edge AI technologies and agentic frameworks. It serves as a central hub for managing personal productivity (Calendar, Gmail), accessing financial market information (briefs, RAG-based explanations), and interacting with a Zerodha trading account.
 
-This project demonstrates a sophisticated, voice-controlled AI assistant ("Jarvis") built using the Google Agent Development Kit (ADK). Jarvis can manage Google Calendar, interact with Gmail via a Model Context Protocol (MCP) server, and delegate complex knowledge-based queries (including Retrieval Augmented Generation - RAG) to a custom agent built with the CLAP framework, communicating via the Agent-to-Agent (A2A) protocol.
-
-## Demo Video
-
-*Watch Jarvis in action! This video showcases the Gmail, Calendar, and CLAP RAG agent integration through voice commands.*
-
-**[Link to your Demo Video - e.g., YouTube, or `media/FINAL_CLAP_DEMO.gif` if you create a GIF]**
-
-*To embed a GIF (recommended for READMEs):*
-*`<p align="center"><img src="media/FINAL_CLAP_DEMO.gif" alt="Project Jarvis Demo" width="700"/></p>`*
-
-<p align="center">
-  <img src="media/PIP_CLAP.png" alt="CLAP Pip Install Example" width="700"/>
-</p>
-
-## Architecture Overview
-
-The system comprises three main, independently running server components:
-
-1.  **ADK Voice Agent (Jarvis - FastAPI UI & ADK Core)**:
-    *   The primary user interface, providing voice input/output via a web UI (FastAPI + WebSockets).
-    *   Core agent logic built with Google ADK (`Agent` class, `Runner`).
-    *   Uses a Gemini model (e.g., `gemini-1.5-flash-latest`) for its main reasoning.
-    *   **Responsibilities:**
-        *   Handles real-time voice interaction (streaming input/output).
-        *   Directly manages Google Calendar operations using local ADK tools.
-        *   Connects to the "Gmail MCP Server" using `MCPToolset` to send emails and fetch recent emails.
-        *   Connects to the "CLAP A2A Server" using a custom ADK tool (acting as an A2A client) to delegate complex queries, especially those requiring RAG over a specific knowledge base (e.g., the Holbox AI PDF).
-    *   Runs typically on `http://localhost:8000`.
-
-2.  **Gmail MCP Server (Starlette & MCP SDK)**:
-    *   A dedicated server exposing Gmail functionalities (send email, fetch recent emails) via the Model Context Protocol (MCP).
-    *   Built using `mcp.server.fastmcp.FastMCP` and served via Starlette.
-    *   Communicates with the ADK Voice Agent over Server-Sent Events (SSE).
-    *   Requires Gmail App Password for SMTP/IMAP access.
-    *   Runs typically on `http://localhost:8001` (or the port configured in `gmail_mcp.py`).
-
-3.  **CLAP A2A Server (FastAPI & CLAP Framework)**:
-    *   Hosts a custom agent built using the **CLAP (Cognitive Layer Agent Package)** framework.
-    *   This CLAP agent is configured for RAG capabilities over a specified document (e.g., a PDF about Holbox AI).
-    *   Exposes its CLAP agent's functionality to other agents via the Agent-to-Agent (A2A) protocol.
-    *   Implemented as a FastAPI application for direct control over HTTP responses.
-    *   Runs typically on `http://localhost:9999`.
-
-**Conceptual Flow:**
-
-[User (Voice/Web UI)] <---- (WebSocket) ----> [ADK Voice Agent (Jarvis - FastAPI @ 8000)]
-| | |
-(ADK Tools) | (MCPToolset via SSE) (A2A Client Tool via HTTP)
-| | |
-v v v
-[Google Calendar API] [Gmail MCP Server @ 8001] [CLAP A2A Server @ 9999]
-(SMTP/IMAP to Gmail) (Hosts CLAP RAG Agent)
-(ChromaDB, LLM Service)
-
+This project showcases the orchestration of Google's Agent Development Kit (ADK), the custom-built CLAP multi-agent Python framework, the Agno agent framework, and various Model Context Protocol (MCP) integrations.
 
 ## Key Features
 
-*   **Voice-Controlled Interface:** Interactive and responsive user experience using Google ADK.
-*   **Modular Agent Capabilities:**
-    *   **Calendar Management:** Directly handled by the ADK agent.
-    *   **Gmail Integration:** Via a dedicated, reusable MCP server.
-    *   **Advanced Knowledge/RAG:** Delegated to a specialized CLAP agent via A2A, allowing complex document querying (e.g., about Holbox AI).
-*   **Inter-Agent Communication:** Demonstrates A2A protocol for service-like calls between the ADK agent and the CLAP agent.
-*   **MCP Tool Usage:** Shows ADK `MCPToolset` connecting to an SSE-based MCP server.
-*   **Custom Agent Framework (CLAP):** Leverages the CLAP framework for building the RAG-capable backend agent.
-*   **Retrieval Augmented Generation (RAG):** The CLAP agent can answer questions based on a PDF document using a vector store (ChromaDB).
+*   **Voice-Controlled Interface:** Interactive and responsive UI for natural language interaction (text and speech).
+*   **Comprehensive Productivity Suite:**
+    *   **Google Calendar Management:** View, create, edit, and delete calendar events.
+    *   **Gmail Integration:** Send emails and fetch recent email summaries.
+*   **Advanced Financial Capabilities:**
+    *   **Zerodha Trading Account Interaction:** Securely log in, view holdings, check positions, get margins, and place orders.
+    *   **Financial Market Briefs:** Receive synthesized daily market briefs covering Bitcoin (via CoinGecko), major tech stocks, and market sentiment (powered by an Agno agent team using YFinance).
+    *   **Financial Knowledge Base (RAG):** Ask for explanations of financial terms and concepts, with answers retrieved from a curated document base (`financial_glossary.pdf`) using the CLAP RAG agent.
+*   **Multi-Agent System:**
+    *   **Orchestrator:** Jordon (Google ADK agent) acts as the central orchestrator.
+    *   **Specialized Agents:**
+        *   CLAP RAG Agent: For deep knowledge retrieval.
+        *   Agno Agent Team: For dynamic financial brief synthesis.
+    *   **MCP Services:** Dedicated local MCP servers for Gmail and Zerodha, demonstrating real-world tool integration.
+*   **Modular & Extensible Architecture:** Designed with clear separation of concerns for each component.
 
+## Architecture Overview
+
+Jordon operates as a distributed system of interconnected services:
+
+1.  **Jordon ADK Voice Agent (FastAPI + ADK + Gemini LLM):**
+    *   The primary user interface and main orchestrator.
+    *   Handles voice input/output via WebSockets.
+    *   Uses local Python functions for Google Calendar.
+    *   Connects to Gmail and Zerodha MCP servers via ADK `MCPToolset` (SSE).
+    *   Delegates complex queries to CLAP and Agno agents via HTTP calls.
+
+2.  **Local Gmail MCP Server (Starlette + FastMCP + SSE):**
+    *   Exposes Gmail functionalities (`send_email_tool`, `fetch_recent_emails`) over MCP.
+
+3.  **Local Zerodha MCP Server (Starlette + FastMCP + SSE):**
+    *   A modified version of the `aptro/zerodha-mcp` server, adapted to run locally via SSE.
+    *   Exposes Zerodha trading tools (`check_and_authenticate`, `get_holdings`, etc.).
+    *   Includes a local FastAPI instance on port 5000 to handle the Kite Connect OAuth redirect.
+
+4.  **Agno Financial Brief Agent Server (FastAPI + Agno Team + Groq/Gemini LLMs):**
+    *   Hosts an Agno `Team` of agents.
+    *   One member agent uses `YFinanceTools` for stock news/prices.
+    *   Another member agent uses a custom tool for CoinGecko crypto prices.
+    *   A coordinator agent synthesizes this data into market briefs.
+    *   Accessed by Jordon via an HTTP "A2A-like" call.
+
+5.  **CLAP RAG Agent Server (FastAPI + CLAP Agent + ChromaDB + Gemini LLM):**
+    *   Hosts a CLAP `Agent` for Retrieval Augmented Generation.
+    *   Uses ChromaDB and SentenceTransformer embeddings for a knowledge base built from `financial_glossary.pdf`.
+    *   Includes a `duckduckgo_search` tool as a fallback.
+    *   Accessed by Jordon via an HTTP "A2A-like" call.
+
+**Simplified Data Flow:**
+Use code with caution.
+Markdown
+[User (Voice/Web UI)] <--(WebSocket)--> [Jordon ADK Voice Agent (FastAPI @ Port 8000)]
+| |
+| +-- (Local Python Call) --> [Google Calendar API]
+| |
+| +-- (MCP/SSE) --> [Local Gmail MCP Server (Starlette @ Port 8001)]
+| |
+| +-- (MCP/SSE) --> [Local Zerodha MCP Server (Starlette @ Port 8002)]
+| | (Auth FastAPI @ Port 5000)
+| |
+| +-- (HTTP POST) --> [Agno Financial Brief Server (FastAPI @ Port 10000)]
+| |
++--------------------------------------(HTTP POST) --> [CLAP RAG Q&A Server (FastAPI @ Port 9999)]
+## Technology Stack
+
+*   **Core Agent Framework (Orchestrator):** Google Agent Development Kit (ADK v0.5.0)
+*   **Voice Agent Web Server:** FastAPI, Uvicorn, WebSockets
+*   **Specialized Agent Frameworks:**
+    *   CLAP (Custom Python Multi-Agent Framework)
+    *   Agno
+*   **LLMs:** Google Gemini Flash, Groq Llama3 (8B & 70B)
+*   **Model Context Protocol (MCP):** `mcp` library, `FastMCP` for server implementation, SSE transport.
+*   **Retrieval Augmented Generation (RAG):**
+    *   Vector Database: ChromaDB
+    *   Embedding Model: SentenceTransformers (default `all-MiniLM-L6-v2`)
+    *   Document Loaders: PyPDF, custom text processing.
+*   **Financial Data Tools:**
+    *   Kite Connect API (via local Zerodha MCP)
+    *   YFinance (via Agno `YFinanceTools`)
+    *   CoinGecko API (via custom Agno tool)
+*   **Other Tools:** Google Calendar API, Gmail API (via MCP), DuckDuckGo Search.
+*   **Programming Language:** Python 3.10
+*   **UI:** HTML, CSS, JavaScript (for the ADK voice agent's frontend).
 
 ## Prerequisites
 
-*   **Python:** Version 3.10 recommended.
-*   **Conda (or other virtual environment manager):** `holbox` environment used.
+*   Python 3.10
+*   Conda (recommended for environment management)
 *   **API Keys & Credentials:**
-    *   Google API Key (for Gemini, via AI Studio).
-    *   Gmail App Password (for Gmail MCP Server).
-    *   API Key for CLAP Agent's LLM (e.g., Groq or another Google API Key if using Gemini for CLAP).
-    *   Google Calendar API `credentials.json`.
-*   **PDF Document for RAG:** Placed in `HOLBOXATHON/clap_a2a_integration/` (e.g., `holbox_ai_info.pdf`).
+    *   Google API Key (for Gemini LLM used by ADK Jordon & CLAP RAG Agent) - store in relevant `.env` files.
+    *   Groq API Key (for Groq LLMs used by Agno Agent) - store in Agno agent's `.env` file.
+    *   Zerodha Kite Connect API Key & API Secret - store in the local Zerodha MCP server's `.env` file.
+    *   Gmail SMTP Username & App Password (for Gmail MCP server) - store in Gmail MCP's `.env` file.
+*   **Google Cloud Project:** With Calendar API and Speech-to-Text API enabled.
+*   **`credentials.json` for Google Calendar:** Obtained from Google Cloud Console for OAuth.
+*   **Zerodha Developer App:** Configured with the correct Redirect URI (`http://127.0.0.1:5000/zerodha/auth/redirect`).
+*   **RAG Document:** `financial_glossary.pdf` placed in the `clap_a2a_integration/` directory.
 
-## Setup
+## Setup Instructions
 
-1.  **Clone the Project.**
-2.  **Create and Activate Conda Environment:**
+1.  **Clone Repository:**
+    ```bash
+    git clone YOUR_GITHUB_REPOSITORY_URL
+    cd YOUR_PROJECT_DIRECTORY
+    ```
+
+2.  **Create Conda Environment (Recommended):**
     ```bash
     conda create -n holbox python=3.10 -y
     conda activate holbox
     ```
+
 3.  **Install Dependencies:**
-    *   ADK Voice Agent: `cd ADK/adk-voice-agent && pip install -r requirements.txt && cd ../..`
-    *   CLAP A2A & Gmail MCP: Ensure dependencies like `fastapi`, `uvicorn`, `starlette`, `python-dotenv`, `mcp`, `a2a-sdk`, `requests`, `chromadb`, `sentence-transformers`, `pypdf`, and the SDK for your CLAP agent's LLM are included, likely in the ADK `requirements.txt` or a root project `requirements.txt`. If CLAP is a local package, install it via `pip install -e path/to/clap_framework_root`.
+    *   **ADK Voice Agent (Jordon):**
+        ```bash
+        cd ADK/adk-voice-agent/
+        pip install -r requirements.txt
+        cd ../.. 
+        ```
+    *   **Gmail MCP Server:** (Dependencies likely covered by ADK's `requirements.txt` or install `mcp fastapi uvicorn python-dotenv starlette requests`)
+        Located in `mcps/gmail_mcp.py`.
+    *   **Local Zerodha MCP Server:**
+        Navigate to your cloned `aptro/zerodha-mcp` directory.
+        ```bash
+        # Ensure you are in the aptro/zerodha-mcp directory
+        pip install -r requirements.txt # Or uv pip install kiteconnect fastapi uvicorn python-dotenv httpx "mcp>=1.3.0"
+        ```
+    *   **Agno Financial Brief Agent Server:**
+        Navigate to `ADK/adk-voice-agent/agno_finance_agent/` (or wherever it's located in your final structure).
+        ```bash
+        pip install -r requirements.txt # Ensure Agno, Groq SDK, Google Gemini SDK, httpx, requests are listed
+        ```
+    *   **CLAP RAG Agent Server:**
+        Navigate to `clap_a2a_integration/`.
+        ```bash
+        pip install -r requirements.txt # Ensure CLAP, ChromaDB, SentenceTransformers, Google Gemini SDK are listed
+        ```
+    *(Note: Consolidate requirements into top-level files if structure changes)*
+
 4.  **Configure Environment Variables (`.env` files):**
-    *   `ADK/adk-voice-agent/.env`: `GOOGLE_API_KEY`, `CLAP_A2A_SERVER_URL="http://localhost:9999"`
-    *   `mcps/.env`: `SMTP_USERNAME`, `SMTP_PASSWORD`
-    *   `clap_a2a_integration/.env`: API key for CLAP agent's LLM (e.g., `GOOGLE_API_KEY` or `GROQ_API_KEY`).
-5.  **Setup Google Calendar API:** Run `python ADK/adk-voice-agent/setup_calendar_auth.py` and authorize.
-6.  **Place RAG Document:** Put your PDF (e.g., `holbox_ai_info.pdf`) in `clap_a2a_integration/`.
+    *   **`ADK/adk-voice-agent/.env`:**
+        *   `GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY`
+        *   `CLAP_A2A_SERVER_URL="http://localhost:9999"`
+        *   `AGNO_A2A_FINANCIAL_SERVER_URL="http://localhost:10000"`
+    *   **`mcps/gmail_mcp_config/.env` (or wherever `gmail_mcp.py` loads from):**
+        *   `SMTP_USERNAME=your_gmail_address`
+        *   `SMTP_PASSWORD=your_gmail_app_password`
+    *   **`local_zerodha_mcp_directory/.env` (root of your `aptro/zerodha-mcp` clone):**
+        *   `KITE_API_KEY=YOUR_ZERODHA_KITE_API_KEY`
+        *   `KITE_API_SECRET=YOUR_ZERODHA_KITE_API_SECRET`
+    *   **`ADK/adk-voice-agent/agno_finance_agent/.env`:**
+        *   `GROQ_API_KEY=YOUR_GROQ_API_KEY`
+        *   `GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY` (if Gemini is used by Agno coordinator)
+        *   `AGNO_DATA_FETCHER_MODEL_GROQ=llama3-8b-8192` (or your preferred model)
+        *   `AGNO_COORDINATOR_MODEL_GEMINI=gemini-1.5-flash-latest` (or your preferred model)
+    *   **`clap_a2a_integration/.env`:**
+        *   `GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY` (for CLAP's LLM)
+
+5.  **Google Calendar API Setup:**
+    *   Place your downloaded `credentials.json` in the `ADK/adk-voice-agent/` directory.
+    *   Run the setup script from within that directory:
+        ```bash
+        cd ADK/adk-voice-agent/
+        python setup_calendar_auth.py 
+        cd ../..
+        ```
+    *   Follow the browser authentication flow. This will store `calendar_token.json` in `~/.credentials/`.
+
+6.  **Zerodha API App:**
+    *   Ensure your app in the Kite Developer console has the **Redirect URI** set to `http://127.0.0.1:5000/zerodha/auth/redirect`.
+
+7.  **CLAP RAG Document:**
+    *   Ensure `financial_glossary.pdf` (or your chosen PDF) is in the `clap_a2a_integration/` directory. The ChromaDB will be built on the first run of the CLAP server if it doesn't exist.
 
 ## Running the System
 
-Run each server in a separate terminal, in order:
+Each server component needs to be run in a separate terminal. Ensure your `holbox` conda environment is activated for each.
 
 1.  **Gmail MCP Server:**
     ```bash
-    conda activate holbox
-    python mcps/gmail_mcp.py
+    python mcps/gmail_mcp.py 
     ```
-    (Runs on port 8001 or 5000 as configured)
+    *(Runs on `http://localhost:8001`)*
 
-2.  **CLAP A2A Server (with RAG):**
+2.  **Local Zerodha MCP Server (SSE Version):**
+    *   Navigate to your local `aptro/zerodha-mcp` directory (the one modified to run as SSE).
     ```bash
-    conda activate holbox
-    python clap_a2a_integration/run_clap_a2a_server_fastapi_style.py
+    python main.py 
     ```
-    (Runs on port 9999. First run ingests the PDF.)
+    *(Runs MCP SSE on `http://localhost:8002`, Auth FastAPI on `http://localhost:5000`)*
 
-3.  **ADK Voice Agent (Jarvis):**
+3.  **CLAP RAG Agent Server:**
+    *   Navigate to `clap_a2a_integration/`.
     ```bash
-    conda activate holbox
-    cd ADK/adk-voice-agent/app
+    python run_clap_a2a_server.py 
+    ```
+    *(Runs on `http://localhost:9999`)*
+
+4.  **Agno Financial Brief Agent Server:**
+    *   Navigate to `ADK/adk-voice-agent/agno_finance_agent/` (adjust path if different).
+    ```bash
+    python run_financial_a2a_server.py 
+    ```
+    *(Runs on `http://localhost:10000`)*
+
+5.  **Jordon ADK Voice Agent (Main Application):**
+    *   Navigate to `ADK/adk-voice-agent/app/`.
+    ```bash
     uvicorn main:app --reload
     ```
-    (Runs on port 8000)
+    *(Runs on `http://localhost:8000`)*
 
-## How to Use
+Access Jordon by opening `http://localhost:8000` in your browser.
 
-1.  Open `http://localhost:8000` in your browser.
-2.  Interact with Jarvis using voice or text:
-    *   **Calendar:** "What's my schedule for today?"
-    *   **Gmail:** "Send an email to my_friend@example.com, subject Hello, body Just checking in!"
-    *   **CLAP Agent (Holbox AI Info):** "Ask the CLAP agent: What are the key services of Holbox AI?"
+## How to Use / Example Interactions
 
-## Key Technologies Used (Top 10)
+*   **Voice or Text Input:** Interact via the web UI.
+*   **Calendar:** "What's on my calendar for tomorrow?", "Create an event for a meeting on Friday at 2 PM called Project Sync."
+*   **Gmail:** "Send an email to example@example.com with subject Hello and body Just checking in.", "What are my latest emails?"
+*   **Zerodha:**
+    *   "I want to login to my Zerodha account." (Follow browser prompts)
+    *   "What are my Zerodha holdings?"
+    *   "Show my open positions in Zerodha."
+*   **Financial Brief:** "What's the market brief for today?", "Give me a financial report focusing on AI stocks."
+*   **CLAP RAG:** "What is a P/E ratio?", "Explain market capitalization."
 
-Python, Google Agent Development Kit (ADK), FastAPI, CLAP Framework, WebSockets, Google Gemini API, A2A (Agent-to-Agent) Protocol & SDK, MCP (Model Context Protocol) & SDK, ChromaDB, JavaScript (for UI).
+## Project Structure (Key Directories)
 
+*   `ADK/adk-voice-agent/app/`: Contains the main Jordon ADK agent, its FastAPI server, and static UI files.
+    *   `jarvis/`: Jordon's agent logic and tools.
+*   `mcps/`: Contains the standalone MCP server implementations (Gmail, local Zerodha).
+*   `clap_a2a_integration/`: Contains the CLAP RAG agent and its FastAPI server.
+*   `ADK/adk-voice-agent/agno_finance_agent/`: Contains the Agno Financial Brief agent team and its FastAPI server.
+
+## Future Enhancements / Considerations
+
+*   Integrate a live Alpha Vantage SSE MCP if a stable public one is found or a local one is built.
+*   More sophisticated error handling and response generation in Jordon.
+*   Expand the financial glossary for the CLAP RAG agent.
+*   Refine prompts for all LLMs for better accuracy and conciseness.
+*   Containerize services for easier deployment (e.g., using Docker).
