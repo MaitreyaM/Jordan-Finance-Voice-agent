@@ -45,10 +45,11 @@ Jordon operates as a distributed system of interconnected services:
 2.  **Local Gmail MCP Server (Starlette + FastMCP + SSE):**
     *   Exposes Gmail functionalities (`send_email_tool`, `fetch_recent_emails`) over MCP.
 
-3.  **Local Zerodha MCP Server (Starlette + FastMCP + SSE):**
+3.  **Local Zerodha MCP Server (Starlette + FastMCP + SSE):** 
     *   A modified version of the `aptro/zerodha-mcp` server, adapted to run locally via SSE.
     *   Exposes Zerodha trading tools (`check_and_authenticate`, `get_holdings`, etc.).
     *   Includes a local FastAPI instance on port 5000 to handle the Kite Connect OAuth redirect.
+    *   PLEASE CLONE THIS ZERODHA MCP IN THE MCP FOLDER TO RUN LOCALLY : https://github.com/aptro/zerodha-mcp
 
 4.  **Agno Financial Brief Agent Server (FastAPI + Agno Team + Groq/Gemini LLMs):**
     *   Hosts an Agno `Team` of agents.
