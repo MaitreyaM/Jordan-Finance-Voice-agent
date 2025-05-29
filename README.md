@@ -81,12 +81,19 @@ Markdown
 | +-- (MCP/SSE) --> [Local Gmail MCP Server (Starlette @ Port 8001)]
 
 | |
+
 | +-- (MCP/SSE) --> [Local Zerodha MCP Server (Starlette @ Port 8002)]
+
 | | (Auth FastAPI @ Port 5000)
+
 | |
+
 | +-- (HTTP POST) --> [Agno Financial Brief Server (FastAPI @ Port 10000)]
+
 | |
+
 +--------------------------------------(HTTP POST) --> [CLAP RAG Q&A Server (FastAPI @ Port 9999)]
+
 ## Technology Stack
 
 *   **Core Agent Framework (Orchestrator):** Google Agent Development Kit (ADK v0.5.0)
