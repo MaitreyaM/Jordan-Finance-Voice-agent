@@ -29,13 +29,7 @@ https://github.com/user-attachments/assets/820884b1-edd7-4cba-9248-5b6f84f4e090
 
 ## Architecture Overview
 
-<p align="center">
-  <img
-    src="https://raw.githubusercontent.com/MaitreyaM/Jordan-Finance-Voice-agent/main/Jordan_flow.png"
-    alt="Architecture Overview"
-    width="700"
-  />
-</p>
+![Image](https://github.com/user-attachments/assets/b25d2da2-7e4d-40a9-ac46-f97034063bb8)
 
 Jordon operates as a distributed system of interconnected services:
 
