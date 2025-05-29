@@ -35,7 +35,7 @@ This project showcases the orchestration of Google's Agent Development Kit (ADK)
 ## Architecture Overview
 
 <p align="center">
-  <img src="Jordan_flow.png" alt="Jordan" width="700" height="200"/>
+  ![Architecture Overview](./Jordan_flow.png)
 </p>
 
 Jordon operates as a distributed system of interconnected services:
