@@ -35,7 +35,11 @@ This project showcases the orchestration of Google's Agent Development Kit (ADK)
 ## Architecture Overview
 
 <p align="center">
-  ![Architecture Overview](./Jordan_flow.png)
+  <img
+    src="https://raw.githubusercontent.com/MaitreyaM/Jordan-Finance-Voice-agent/main/Jordan_flow.png"
+    alt="Architecture Overview"
+    width="700"
+  />
 </p>
 
 Jordon operates as a distributed system of interconnected services:
