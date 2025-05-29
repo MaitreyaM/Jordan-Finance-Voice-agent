@@ -65,13 +65,21 @@ Jordon operates as a distributed system of interconnected services:
     *   Accessed by Jordon via an HTTP "A2A-like" call.
 
 **Simplified Data Flow:**
+
 Use code with caution.
+
 Markdown
+
 [User (Voice/Web UI)] <--(WebSocket)--> [Jordon ADK Voice Agent (FastAPI @ Port 8000)]
+
 | |
+
 | +-- (Local Python Call) --> [Google Calendar API]
+
 | |
+
 | +-- (MCP/SSE) --> [Local Gmail MCP Server (Starlette @ Port 8001)]
+
 | |
 | +-- (MCP/SSE) --> [Local Zerodha MCP Server (Starlette @ Port 8002)]
 | | (Auth FastAPI @ Port 5000)
