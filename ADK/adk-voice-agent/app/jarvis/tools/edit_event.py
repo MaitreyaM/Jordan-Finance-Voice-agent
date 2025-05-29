@@ -32,10 +32,8 @@ def edit_event(
                 "message": "Failed to authenticate with Google Calendar. Please check credentials.",
             }
 
-        # Always use primary calendar
         calendar_id = "primary"
 
-        # First get the existing event
         try:
             event = (
                 service.events().get(calendarId=calendar_id, eventId=event_id).execute()
@@ -46,7 +44,6 @@ def edit_event(
                 "message": f"Event with ID {event_id} not found in primary calendar.",
             }
 
-        # Update the event with new values
         if summary:
             event["summary"] = summary
 

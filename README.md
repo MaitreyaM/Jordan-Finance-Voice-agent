@@ -4,6 +4,15 @@ Jordon is a sophisticated, voice-controlled AI assistant built to demonstrate th
 
 This project showcases the orchestration of Google's Agent Development Kit (ADK), the custom-built CLAP multi-agent Python framework, the Agno agent framework, and various Model Context Protocol (MCP) integrations.
 
+
+<p align="center">
+  <video width="800" controls>
+    <source src="demo.mp4" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>
+</p>
+
+
 ## Key Features
 
 *   **Voice-Controlled Interface:** Interactive and responsive UI for natural language interaction (text and speech).
