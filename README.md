@@ -6,12 +6,7 @@ This project showcases the orchestration of Google's Agent Development Kit (ADK)
 
 
 
-<p align="center">
-  <video width="800" controls>
-    <source src="jordan.mp4" type="video/mp4">
-    Your browser does not support HTML5 video.
-  </video>
-</p>
+https://github.com/user-attachments/assets/820884b1-edd7-4cba-9248-5b6f84f4e090
 
 
 ## Key Features
