@@ -35,7 +35,6 @@ async def lifespan(app: FastAPI):
     print("CLAP A2A FastAPI Server (RAG): Lifespan startup...")
     dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
     load_dotenv(dotenv_path=dotenv_path) 
-    print(f"CLAP A2A FastAPI Server (RAG): .env loaded from {dotenv_path}")
 
     clap_executor_instance = ClapAgentA2AExecutorFastAPIStyle()
     await clap_executor_instance.setup_rag_agent() 
@@ -56,7 +55,6 @@ app.add_middleware(
     allow_credentials=True, allow_methods=["GET", "POST"], allow_headers=["*"],
 )
 
-# --- Updated Agent Card ---
 AGENT_CARD_DATA = {
     "name": "CLAP Finance Info Agent (A2A FastAPI)",
     "description": "A CLAP agent with RAG capabilities, providing information about Finance based on a specific knowledge base.",
